@@ -19,8 +19,8 @@ tofi_data = []
 for tofi_file in tofi_files:
     depth = float(str(tofi_file).split("_")[7][1:-6])
     depths.append(depth)
-    data = pd.read_csv(tofi_file, sep="\s+", skiprows=1, header=None, names=["lon", "lat", "dVp"])
-    gdata = griddata(data[["lon", "lat"]].to_numpy(), data["dVp"].to_numpy(), (grid_lon, grid_lat), method="cubic")
+    data = pd.read_csv(tofi_file, sep="\s+", skiprows=1, header=None, names=["lon", "lat", "V"])
+    gdata = griddata(data[["lon", "lat"]].to_numpy(), data["V"].to_numpy(), (grid_lon, grid_lat), method="cubic")
     tofi_data.append(gdata)
 
 depths = np.array(depths)
@@ -32,7 +32,7 @@ r = xr.DataArray(
     dims="r",
     attrs={
         "long_name": "radius",
-        "units": "m",
+        "units": "\metre",
         "positive": "up"
     }
 )
@@ -41,7 +41,7 @@ lat = xr.DataArray(
     dims="lat",
     attrs={
         "long_name": "latitude",
-        "units": "degrees"
+        "units": "\degree"
     }
 )
 lon = xr.DataArray(
@@ -49,7 +49,7 @@ lon = xr.DataArray(
     dims="lon",
     attrs={
         "long_name": "longitude",
-        "units": "degrees",
+        "units": "\degree",
         "convention": "bipolar"
     }
 )
@@ -67,15 +67,15 @@ tofi_data = xr.Dataset(
 # assign attributes to depth
 tofi_data["depth"] = tofi_data["depth"].assign_attrs({
     "long_name": "depth",
-    "units": "km",
+    "units": "\kilo\metre",
     "positive": "down"
 })
 # assign attributes to data
-tofi_data["dVp_percent"].attrs = {
-    "long_name": "P-wave velocity perturbation",
-    "units": "percent"
-}
+tofi_data["dVp_percent"] = tofi_data["dVp_percent"].assign_attrs({
+    "long_name": "Body wave velocity perturbation",
+    "units": "\percent"
+})
 
 # write to disk
-write_path = Path.home() / Path("OneDrive/phd/firedrake-models/Mann2004_ToFi.nc")
+write_path = Path.home() / Path("OneDrive/phd/firedrake-models/Hall2002_ToFi.nc")
 tofi_data.to_netcdf(write_path)
