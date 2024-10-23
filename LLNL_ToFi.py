@@ -47,7 +47,6 @@ already has been reparametrised).
 from mpi4py import MPI
 import numpy as np
 from pathlib import Path
-import os
 import sys
 import getopt
 

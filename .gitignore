@@ -6,3 +6,6 @@ OUTPUT_FILES/*
 
 # ignore .pyc files
 *.pyc
+
+# ignore python cache
+__pycache__/*
