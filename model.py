@@ -64,7 +64,7 @@ def init_model_parallel(comm=0):
 
     snd_model = None
     if myrank == 0:
-        snd_model = read_model()
+        snd_model = read_model(comm)
 
     keys = None
     if myrank == 0:
@@ -81,54 +81,61 @@ def init_model_parallel(comm=0):
     
         rcv_model[key] = snd_array
 
-    model = {
-        "du": RBFInterpolator(rcv_model["coords"], rcv_model["du"], neighbors=64, kernel="linear"),
-        "v_1D": CubicSpline(rcv_model["radii"], rcv_model["v_1D"])
-    }
+    model = pv.UnstructuredGrid(rcv_model["cells"], rcv_model["celltypes"], rcv_model["points"])
+    model.point_data["du"] = rcv_model["du"]
+    model.point_data["v_1D"] = rcv_model["v_1D"]
 
     comm.barrier()
 
     return model
   
 #--------------------------------------------------------------------------    
-def read_model():
+def read_model(comm):
 
     # USER MODIFICATION REQUIRED
     # Please provide the code to read in your model
-    model_path = Path(FIREDRAKE_PATH) / Path("Mann2004/Stage_28_Gplates") / Path("output_4.pvtu")
+    myrank = comm.Get_rank()
+    print(f"Reading model on process {myrank}")
+    model_path = Path(FIREDRAKE_PATH) / Path("Hall2002/Stage_27_Gplates") / Path("output_4.pvtu")
     model = pv.read(model_path)
-    model = model.clean()
-    model.points /= 2.22 # normalise the model for rbf interpolation
-    model.point_data['T'] = model['FullTemperature'] * 3700 + 300
-    model.point_data['dT'] = model['DeltaT'] * (np.max(model['T']) - np.min(model['T']))
-    model.point_data['T_av'] = model['T'] - model['dT']
-    model.point_data['radii'] = np.linalg.norm(model.points, axis=1)
+    model = model.clean() # prune duplicate mesh points
+    model.points /= 2.22 # normalise the model
+    # drop unneeded arrays
+    for array_name in model.point_data.keys():
+        if array_name not in ["FullTemperature", "DeltaT"]:
+            del model.point_data[array_name]
+    # calculate T and T_av, dropping arrays after they become unneeded
+    model.point_data["T"] = model["FullTemperature"] * 3700 + 300
+    model.point_data["dT"] = model["DeltaT"] * (np.max(model["T"]) - np.min(model["T"]))
+    model.point_data["T_av"] = model["T"] - model["dT"]
+    model.point_data["depth"] = (1 - np.linalg.norm(model.points, axis=1)) * R_EARTH_KM * 1.0e3
 
-    model.point_data['depth'] = (R_EARTH_KM - model["radii"]) * 1.0e3
+    slb_pyrolite = gdrift.ThermodynamicModel('SLB_16', 'pyrolite') # load thermodynamic model
 
-    slb_pyrolite = gdrift.ThermodynamicModel('SLB_16', 'pyrolite')
+    v = "vp" # choose vp or vs
+    if v == "vp": temperature_to_v = slb_pyrolite.temperature_to_vp
+    elif v == "vs": temperature_to_v = slb_pyrolite.temperature_to_vs
+    else: raise ValueError("v must be 'vp' or 'vs'")
 
-    model.point_data['vp'] = slb_pyrolite.temperature_to_vp(temperature=np.array(model['T']), depth=np.array(model['depth']))
-    model.point_data['vp_av'] = slb_pyrolite.temperature_to_vp(temperature=np.array(model['T_av']), depth=np.array(model['depth']))
+    model.point_data["v_3D"] = temperature_to_v(temperature=np.array(model['T']), depth=np.array(model['depth']))
+    model.point_data["v_1D"] = temperature_to_v(temperature=np.array(model['T_av']), depth=np.array(model['depth']))
+    model.point_data["du"] = 1/model["v_3D"] - 1/model["v_1D"] # calculate slowness perturbation
 
-    model.point_data['vs'] = slb_pyrolite.temperature_to_vs(temperature=np.array(model['T']), depth=np.array(model['depth']))
-    model.point_data['vs_av'] = slb_pyrolite.temperature_to_vs(temperature=np.array(model['T_av']), depth=np.array(model['depth']))
-
-    keys = ["vp", "vp_av"]
-    
-    coords = np.array(model.points)
-    du = np.array(1/model[keys[0]] - 1/model[keys[1]])
-    radii = np.linspace(model["radii"].min(), model["radii"].max(), num=250)
-    v_1D_coords = np.array([radii, np.zeros_like(radii), np.zeros_like(radii)]).T
-    v_1D = pv.PolyData(v_1D_coords)
-    v_1D = np.array(v_1D.sample(model)["vp_av"])
+    # drop unneeded point_data arrays
+    for array_name in model.point_data.keys():
+        if array_name not in ["du", "v_1D"]:
+            del model.point_data[array_name]
 
     model = {
-        "coords": coords,
-        "du": du,
-        "radii": radii,
-        "v_1D": v_1D
+        "cells": np.array(model.cells),
+        "celltypes": np.array(model.celltypes),
+        "points": np.array(model.points),
+        "du": np.array(model["du"]),
+        "v_1D": np.array(model["v_1D"])
     }
+
+    print(f"Model loaded on process {myrank}")
+
     # END USER MODIFICATION REQUIRED
 
     return model
@@ -153,11 +160,12 @@ def project_slowness_3D(model,radius_avg,lat,lon,radius_min,radius_max,grid_spac
     radius_avg /= R_EARTH_KM
     spherical_coord = spherical.geo2sph([radius_avg,lon,lat])
     cart_coord = spherical.sph2cart(spherical_coord)
+    point = pv.PolyData([cart_coord])
     try:
-        du = model["du"]([cart_coord])[0]
+        du = point.sample(model)["du"][0]
     except Exception as e:
         print(f"Error with coordinate {cart_coord}: {e}")
-        
+    del point
     # END USER MODIFICATION REQUIRED
 
     return du
@@ -172,10 +180,12 @@ def model_1D(model,radius):
 
     # USER MODIFICATION REQUIRED
     radius /= R_EARTH_KM
-    v_1D = model["v_1D"](radius)
+    point = pv.PolyData([[radius,0.,0.]])
+    v_1D = point.sample(model)["v_1D"][0]
+    del point
     # END USER MODIFICATION REQUIRED
 
-    return float(v_1D)
+    return v_1D
 
 #--------------------------------------------------------------------------    
 def get_slowness_layer(model,radius_in,lat,lon,grid_spacing):
