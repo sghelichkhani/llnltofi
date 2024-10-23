@@ -1,6 +1,6 @@
 # LLNL_ToFi
 
-LLNL\_ToFi is a small Python program for tomographic filtering of hypothetical seismic mantle structure ($v_S$ or $v_P$) using the resolution matrix of the LLNL-G3D-JPS model by Simmons et al. (2015). The routine *LLNL_ToFi.py* performs the matrix-vector multiplication $Rm=m'$ to obtain the filtered version $m'$ of the given seismic model $m$. To be able to perform this operation, $m$ needs to be given in the parametrization of the LLNL-G3D-JPS model.
+LLNL\_ToFi is a small Python program for tomographic filtering of hypothetical seismic mantle structure $v_S$ or $v_P$ using the resolution matrix $R$ of the LLNL-G3D-JPS model by Simmons et al. (2015). The routine *LLNL_ToFi.py* performs the matrix-vector multiplication $Rm=m'$ to obtain the filtered version $m'$ of the given seismic model $m$. To be able to perform this operation, $m$ needs to be given in the parametrization of the LLNL-G3D-JPS model.
 
 Original author: Bernhard Schuberth (Geophysics, LMU Munich, Germany, bernhard.schuberth@lmu.de)  
 Contributing author: Tom New (EarthByte, School of Geosciences, The University of Sydney, Australia, tom.new@sydney.edu.au)
