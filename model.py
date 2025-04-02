@@ -10,7 +10,7 @@ Date:     2024-08-12
 
 LLNL_ToFi
 
-Example routines for determining the values of a seismic velocity model on the 
+Example routines for determining the values of a seismic velocity model on the
 grid points of the LLNL-G3D-JPS model.
 
     Original work Copyright (C) 2019 Bernhard Schuberth (bernhard.schuberth@lmu.de)
@@ -29,7 +29,7 @@ grid points of the LLNL-G3D-JPS model.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-    
+
 """
 # -----------------------------------------------------------------------------
 
@@ -40,6 +40,7 @@ import pyvista as pv
 import gdrift
 import spherical
 from scipy.interpolate import RBFInterpolator, CubicSpline
+from scipy.spatial import cKDTree
 from pathlib import Path
 import sys
 
@@ -199,16 +200,17 @@ def project_slowness_3D(model, radius_avg, lat, lon, radius_min, radius_max, gri
 
     # USER MODIFICATION REQUIRED
     radius_avg /= R_EARTH_KM
-    spherical_coord = spherical.geo2sph([radius_avg, lon, lat])
-    cart_coord = spherical.sph2cart(spherical_coord)
-    point = pv.PolyData([cart_coord])
-    try:
-        du = point.sample(model)["du"][0]
-    except Exception as e:
-        print(f"Error with coordinate {cart_coord}: {e}")
-    del point
-    # END USER MODIFICATION REQUIRED
 
+    # Convert LLNL rad/lon/lat to cartesian coordinates
+    cart_coord = spherical.sph2cart(
+        spherical.geo2sph(
+            np.column_stack((radius_avg, lon, lat))
+        )
+    )
+
+    dists, inds = cKDTree(np.asarray(model.points)).query(cart_coord, k=6)
+
+    du = np.sum(1/dists * model["du"][inds], axis=1)/np.sum(1/dists, axis=1)
     return du
 
 # --------------------------------------------------------------------------
@@ -259,13 +261,15 @@ def get_slowness_layer(model, radius_in, lat, lon, grid_spacing):
     # Get 1-D seismic velocity for that layer
     v_1D = model_1D(model, radius_avg[0])
 
-    slowness_perturbation = np.ones(len(lat))
-    # Loop over all points
-    for ip in np.arange(len(lat)):
-
-        # Get 3-D (absolute) slowness perturbation du = 1/v_3D - 1/v_1D
-        slowness_perturbation[ip] = project_slowness_3D(
-            model, radius_avg[ip], lat[ip], lon[ip], radius_min[ip], radius_max[ip], grid_spacing)
+    slowness_perturbation = project_slowness_3D(
+        model,
+        radius_avg,
+        lat,
+        lon,
+        radius_min,
+        radius_max,
+        grid_spacing
+    )
 
     return slowness_perturbation, v_1D
 
