@@ -100,8 +100,7 @@ def read_model(comm):
     # Please provide the code to read in your model
     myrank = comm.Get_rank()
     print(f"Reading model on process {myrank}")
-    model_path = Path(FIREDRAKE_PATH) / Path("ojp-collision_cg/Hall2002") / \
-        Path("output_0.pvtu")
+    model_path = Path("./Ra_2e8_Zahirovic_0Ma_CG") / Path("output_0.pvtu")
     model = pv.read(model_path)
     model = model.clean()  # prune duplicate mesh points
     model.points /= 2.208  # normalise the model
@@ -207,10 +206,35 @@ def project_slowness_3D(model, radius_avg, lat, lon, radius_min, radius_max, gri
             np.column_stack((radius_avg, lon, lat))
         )
     )
+    # I am assuming radius_min, and radius_max are constant per layer for now
+    assert radius_min.min() == radius_min.max()
+    assert radius_max.min() == radius_max.max()
 
-    dists, inds = cKDTree(np.asarray(model.points)).query(cart_coord, k=6)
+    within_radius_min_max = np.logical_and(
+        model.preprocess["rads"] >= radius_min.min() / R_EARTH_KM,
+        model.preprocess["rads"] <= radius_max.min() / R_EARTH_KM
+    )
 
-    du = np.sum(1/dists * model["du"][inds], axis=1)/np.sum(1/dists, axis=1)
+    # Build an array
+    dists, inds = cKDTree(np.asarray(
+        model.points[within_radius_min_max])).query(cart_coord, k=1000)
+
+    # Look for values withing the grid spacing
+    within_grid_spacing = dists < grid_spacing / R_EARTH_KM
+    dists[np.logical_not(within_grid_spacing)] = 1e10
+
+    # Do an interpolation of values within grid spacing
+    if True:
+        du = (
+            np.sum(
+                1 / dists *
+                model["du"][within_radius_min_max][inds],
+                axis=1
+            ) / np.sum(1 / dists, axis=1)
+        )
+    else:
+        du = np.average(model["du"][within_radius_min_max][inds], axis=1)
+
     return du
 
 # --------------------------------------------------------------------------
@@ -266,8 +290,10 @@ def get_slowness_layer(model, radius_in, lat, lon, grid_spacing):
         radius_avg,
         lat,
         lon,
-        radius_min,
-        radius_max,
+        # Make sure the thickness is non-zero
+        radius_min if all(radius_min != radius_avg) else radius_avg - 10.0,
+        # Make sure the thickness is non-zero
+        radius_max if all(radius_max != radius_avg) else radius_avg + 10.0,
         grid_spacing
     )
 
@@ -292,6 +318,9 @@ def reparam(comm, radii, gc_lat, lon, reparam):
         # END USER MODIFICATION REQUIRED
 
     v_1D = np.zeros(nl)
+
+    # pre-process model in order to speed up the interpolation
+    preprocess_model(model)
 
     for ilyr in range(1, nl+1):
 
@@ -373,3 +402,9 @@ def reparam(comm, radii, gc_lat, lon, reparam):
             slowness_perturbation[ilyr-1] = -1. * m_true / v_1D[ilyr-1]
 
     return slowness_perturbation, v_1D
+
+
+def preprocess_model(model):
+    model.preprocess = {
+        "rads": np.sqrt(np.sum(model.points ** 2, axis=1)),
+    }
