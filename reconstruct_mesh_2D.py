@@ -33,7 +33,7 @@ grid_lon, grid_lat = np.meshgrid(lons, lats)
 
 reconstruction = "Hall2002"
 root_path = Path(
-    f"/Volumes/Grey/phd/ojp-collision_cg/{reconstruction}/LLNL_ToFi_3")
+    f"/Volumes/Grey/phd/ojp-collision_dg_2e8/{reconstruction}/LLNL_ToFi_3_sg")
 reparam_path = root_path / Path("reparam")
 dVp_reparam_path = reparam_path / Path("dVp")
 dVs_reparam_path = reparam_path / Path("dVs")
@@ -109,5 +109,5 @@ for i in range(len(Vs)):
 
 # write to disk
 write_path = Path.home() / \
-    Path(f"OneDrive/phd/firedrake-models/{reconstruction}_LLNL_ToFi_cg.nc")
+    Path(f"OneDrive/phd/firedrake-models/{reconstruction}_dg_2e8_LLNL_ToFi.nc")
 ds.to_netcdf(write_path)
