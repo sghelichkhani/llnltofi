@@ -100,7 +100,8 @@ def read_model(comm):
     # Please provide the code to read in your model
     myrank = comm.Get_rank()
     print(f"Reading model on process {myrank}")
-    model_path = Path("./Ra_2e8_Zahirovic_0Ma_CG") / Path("output_0.pvtu")
+    model_path = Path(
+        "/Volumes/Grey/phd/ojp-collision_dg_2e8/Hall2002") / Path("output_0.pvtu")
     model = pv.read(model_path)
     model = model.clean()  # prune duplicate mesh points
     model.points /= 2.208  # normalise the model
@@ -116,13 +117,9 @@ def read_model(comm):
     model.point_data["depth"] = (
         1 - np.linalg.norm(model.points, axis=1)) * R_EARTH_KM * 1.0e3
 
+    # initialise thermodynamic model
     slb_pyrolite = gdrift.ThermodynamicModel(
         "SLB_16", "pyrolite", temps=np.linspace(300, 4000), depths=np.linspace(0, 2890e3))
-    cammarano_q_model = "Q4"  # choose model from cammarano et al., 2003
-    anelasticity = gdrift.CammaranoAnelasticityModel.from_q_profile(
-        cammarano_q_model)  # Instantiate the anelasticity model
-    anelastic_slb_pyrolite = gdrift.apply_anelastic_correction(
-        slb_pyrolite, anelasticity)  # Apply anelastic correction to the thermodynamic model
 
     # A temperautre profile representing the mantle average temperature
     # This is used to anchor the regularised thermodynamic table (we make sure the seismic speeds are the same at those temperature for the regularised and unregularised table)
@@ -140,12 +137,15 @@ def read_model(comm):
         regular_range={"v_s": [-0.5, 0], "v_p": [-0.5, 0.], "rho": [-0.5, 0.]}
     )
 
-    # Regularising the table
+    cammarano_q_model = "Q6"  # choose model from cammarano et al., 2003
+    anelasticity = gdrift.CammaranoAnelasticityModel.from_q_profile(
+        cammarano_q_model)  # Instantiate the anelasticity model
+    # apply anelastic correction
     linear_anelastic_slb_pyrolite = gdrift.apply_anelastic_correction(
         linear_slb_pyrolite, anelasticity
     )
 
-    v = "vs"  # choose vp or vs
+    v = "vp"  # choose vp or vs
     if v == "vp":
         temperature_to_v = linear_anelastic_slb_pyrolite.temperature_to_vp
     elif v == "vs":
@@ -214,6 +214,16 @@ def project_slowness_3D(model, radius_avg, lat, lon, radius_min, radius_max, gri
         model.preprocess["rads"] >= radius_min.min() / R_EARTH_KM,
         model.preprocess["rads"] <= radius_max.min() / R_EARTH_KM
     )
+
+    # broaden the search radius until there are points
+    thickness = radius_max.max() - radius_min.min()
+    while np.count_nonzero(within_radius_min_max) == 0:
+        radius_min -= thickness/4
+        radius_max += thickness/4
+        within_radius_min_max = np.logical_and(
+            model.preprocess["rads"] >= radius_min.min() / R_EARTH_KM,
+            model.preprocess["rads"] <= radius_max.min() / R_EARTH_KM
+        )
 
     # Build an array
     dists, inds = cKDTree(np.asarray(
