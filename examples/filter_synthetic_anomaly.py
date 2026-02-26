@@ -30,7 +30,9 @@ dlon = coords[:, 0] - lon0
 dlat = coords[:, 1] - lat0
 ddep = coords[:, 2] - depth0
 
-du = 0.01 * np.exp(-0.5 * ((dlon / sigma_h)**2 + (dlat / sigma_h)**2 + (ddep / sigma_v)**2))
+du = 0.01 * np.exp(
+    -0.5 * ((dlon / sigma_h) ** 2 + (dlat / sigma_h) ** 2 + (ddep / sigma_v) ** 2)
+)
 print(f"Peak input du: {du.max():.4e} s/km")
 
 # ── 3. Apply the resolution matrix ─────────────────────────────────────────

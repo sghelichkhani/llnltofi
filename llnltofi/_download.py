@@ -37,11 +37,14 @@ def _download_via_boto3(s3_config: dict, filename: str, dest: Path) -> None:
     s3_key = s3_config["prefix"] + filename
     try:
         from tqdm import tqdm
+
         head = client.head_object(Bucket=s3_config["bucket"], Key=s3_key)
         total = head["ContentLength"]
         with tqdm(total=total, unit="B", unit_scale=True, desc=filename) as pbar:
             client.download_file(
-                s3_config["bucket"], s3_key, str(dest),
+                s3_config["bucket"],
+                s3_key,
+                str(dest),
                 Callback=lambda n: pbar.update(n),
             )
     except ImportError:
@@ -52,9 +55,13 @@ def _download_via_https(cdn_url: str, filename: str, dest: Path) -> None:
     url = cdn_url + filename
     try:
         from tqdm import tqdm
+
         resp = urllib.request.urlopen(url)
         total = int(resp.headers.get("Content-Length", 0))
-        with open(dest, "wb") as f, tqdm(total=total, unit="B", unit_scale=True, desc=filename) as pbar:
+        with (
+            open(dest, "wb") as f,
+            tqdm(total=total, unit="B", unit_scale=True, desc=filename) as pbar,
+        ):
             while True:
                 chunk = resp.read(8192)
                 if not chunk:

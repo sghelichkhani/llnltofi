@@ -56,7 +56,11 @@ def project_onto_grid(
     src_cart = sph2cart(
         geo2sph(
             np.column_stack(
-                (source_points[:, 2] / R_EARTH_KM, source_points[:, 1], source_points[:, 0])
+                (
+                    source_points[:, 2] / R_EARTH_KM,
+                    source_points[:, 1],
+                    source_points[:, 0],
+                )
             )
         )
     )
@@ -102,11 +106,7 @@ def project_onto_grid(
 
         # Target Cartesian coordinates (normalised by R_EARTH_KM)
         target_cart = sph2cart(
-            geo2sph(
-                np.column_stack(
-                    (np.full(n, radius_avg_norm), lon, gc_lat)
-                )
-            )
+            geo2sph(np.column_stack((np.full(n, radius_avg_norm), lon, gc_lat)))
         )
 
         tree = cKDTree(subset_cart)
@@ -131,6 +131,6 @@ def project_onto_grid(
             counts = np.sum(within, axis=1).clip(min=1)
             values = np.sum(masked_vals, axis=1) / counts
 
-        result[off:off + n] = values
+        result[off : off + n] = values
 
     return result

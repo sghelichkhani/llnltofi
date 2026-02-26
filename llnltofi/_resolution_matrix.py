@@ -23,7 +23,5 @@ def load_resolution_matrix(path: str | Path | None = None) -> scipy.sparse.csr_m
         path = _DEFAULT_PATH
     R = scipy.sparse.load_npz(path)
     if R.shape != (N_MODEL, N_MODEL):
-        raise ValueError(
-            f"Expected shape ({N_MODEL}, {N_MODEL}), got {R.shape}"
-        )
+        raise ValueError(f"Expected shape ({N_MODEL}, {N_MODEL}), got {R.shape}")
     return R
