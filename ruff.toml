@@ -1,0 +1,10 @@
+extend-exclude = [
+    "LLNL_ToFi.py",
+    "model.py",
+    "spherical.py",
+    "utils.py",
+    "histogram.py",
+    "reconstruct_mesh_2D.py",
+    "reconstruct_mesh_3D.py",
+    "DATA/",
+]

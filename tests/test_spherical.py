@@ -1,5 +1,4 @@
 import numpy as np
-import pytest
 
 from llnltofi._spherical import cart2sph, sph2cart, geo2sph, sph2geo, cart2polar
 
