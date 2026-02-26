@@ -1,11 +1,16 @@
-# ignore R matrix files as the user will download these themselves.
+__pycache__/
+*.pyc
+*.egg-info/
+dist/
+build/
+*.swp
+.pytest_cache/
+
+# Data files are downloaded at runtime
+llnltofi/data/
+
+# legacy data directory
 DATA/R*
 
-# ignore OUTPUT_FILES
-OUTPUT_FILES/*
-
-# ignore .pyc files
-*.pyc
-
-# ignore python cache
-__pycache__/*
+# output files
+OUTPUT_FILES/

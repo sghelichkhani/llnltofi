@@ -4,9 +4,10 @@ import xarray as xr
 from scipy.interpolate import RBFInterpolator
 from pathlib import Path
 
-from utils import (R_EARTH_KM, R_CMB_KM, LLNL_PATH, LLNL_COORD_FILE, LLNL_DEPTH_FILE,
-                   LLNL_R_FILE_PREFIX, nl_UM_TZ, np_UM_TZ, np_LM, n_m,
-                   OUTPUT_PATH, OUTFILE_FILT_PREFIX, OUTFILE_PARM_PREFIX)
+from llnltofi._constants import R_EARTH_KM, R_CMB_KM
+
+OUTPUT_PATH = './OUTPUT_FILES/'
+OUTFILE_FILT_PREFIX = 'LLNL_G3D_JPS_ToFi_layer'
 
 tofi_files = list(Path(OUTPUT_PATH).glob(f"{OUTFILE_FILT_PREFIX}*.txt"))
 tofi_files.sort(key=lambda filename: int(str(filename).split("_")[6]))
@@ -23,8 +24,6 @@ for tofi_file in tofi_files:
     depth = float(str(tofi_file).split("_")[7][1:-6])
     radius = (R_EARTH_KM - depth) * 1e3
     data = pd.read_csv(tofi_file, sep="\s+", skiprows=1, header=None, names=["lon", "lat", "dVp"])
-    # data["lat"] = np.deg2rad(data["lat"])
-    # data["lon"] = np.deg2rad(data["lon"])
     data["r"] = radius
     data = data[["r", "lat", "lon", "dVp"]]
     tofi_data += data.values.tolist()
@@ -34,11 +33,6 @@ print("Making interpolator")
 rbf = RBFInterpolator(tofi_data[:,:-1], tofi_data[:,-1], neighbors=64, kernel="linear")
 print("Interpolating")
 tofi_data = rbf(grid_flat).T.reshape(nr, nlat, nlon)
-
-# # lat-lon back to degrees
-# lats, lons = np.rad2deg(lats), np.rad2deg(lons)
-# # un-normalise radius
-# radii *= R_EARTH_KM * 1e3
 
 # set up DataArrays for primary coordinates
 r = xr.DataArray(

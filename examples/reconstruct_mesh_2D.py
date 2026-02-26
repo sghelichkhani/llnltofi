@@ -4,9 +4,11 @@ import xarray as xr
 from scipy.interpolate import griddata
 from pathlib import Path
 
-from utils import (R_EARTH_KM, LLNL_PATH, LLNL_COORD_FILE, LLNL_DEPTH_FILE,
-                   LLNL_R_FILE_PREFIX, nl_UM_TZ, np_UM_TZ, np_LM, n_m,
-                   OUTPUT_PATH, OUTFILE_FILT_PREFIX, OUTFILE_PARM_PREFIX)
+from llnltofi._constants import R_EARTH_KM
+
+OUTPUT_PATH = './OUTPUT_FILES/'
+OUTFILE_FILT_PREFIX = 'LLNL_G3D_JPS_ToFi_layer'
+OUTFILE_PARM_PREFIX = 'LLNL_G3D_JPS_Parm_layer'
 
 
 def grid_llnl_from_txt(path, grid_lon, grid_lat):

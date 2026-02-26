@@ -1,0 +1,14 @@
+{
+  "s3": {
+    "endpoint_url": "https://syd1.digitaloceanspaces.com",
+    "bucket": "gadopt",
+    "prefix": "llnltofi/"
+  },
+  "cdn_url": "https://gadopt.syd1.cdn.digitaloceanspaces.com/llnltofi/",
+  "files": {
+    "grid_data.npz": {
+      "sha256": "785807e6f0bc8f0467993201ea3ee20b6b18d1af4ee8d849da6a3aa072f0a1b3",
+      "description": "LLNL-G3D-JPS tessellated grid coordinates and layer depths"
+    }
+  }
+}

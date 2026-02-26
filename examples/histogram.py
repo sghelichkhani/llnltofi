@@ -10,9 +10,12 @@ import seaborn as sns
 sns.set_style("ticks")
 cm = 1/2.54
 
-from utils import (R_EARTH_KM, LLNL_PATH, LLNL_COORD_FILE, LLNL_DEPTH_FILE,
-                   LLNL_R_FILE_PREFIX, nl_UM_TZ, np_UM_TZ, np_LM, n_m,
-                   OUTPUT_PATH, OUTFILE_FILT_PREFIX, OUTFILE_PARM_PREFIX, FIREDRAKE_PATH)
+from llnltofi._constants import R_EARTH_KM
+
+OUTPUT_PATH = './OUTPUT_FILES/'
+OUTFILE_PARM_PREFIX = 'LLNL_G3D_JPS_Parm_layer'
+OUTFILE_FILT_PREFIX = 'LLNL_G3D_JPS_ToFi_layer'
+FIREDRAKE_PATH = '/Volumes/Grey/phd'
 
 
 # fractional dvp from gdrift
