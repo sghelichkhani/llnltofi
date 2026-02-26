@@ -1,0 +1,16 @@
+__pycache__/
+*.pyc
+*.egg-info/
+dist/
+build/
+*.swp
+.pytest_cache/
+
+# Data files are downloaded at runtime
+llnltofi/data/
+
+# legacy data directory
+DATA/R*
+
+# output files
+OUTPUT_FILES/
