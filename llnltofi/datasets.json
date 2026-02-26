@@ -9,6 +9,10 @@
     "grid_data.npz": {
       "sha256": "785807e6f0bc8f0467993201ea3ee20b6b18d1af4ee8d849da6a3aa072f0a1b3",
       "description": "LLNL-G3D-JPS tessellated grid coordinates and layer depths"
+    },
+    "R.npz": {
+      "sha256": "8d70012e1b0dcf9d95d5b3c34de43174e39532b63512fdc2278773123fd3850b",
+      "description": "LLNL-G3D-JPS resolution matrix (sparse CSR)"
     }
   }
 }

@@ -72,7 +72,7 @@ def _download_via_https(cdn_url: str, filename: str, dest: Path) -> None:
         urllib.request.urlretrieve(url, dest)
 
 
-def ensure_data(filename: str = "grid_data.npz") -> Path:
+def ensure_data(filename: str) -> Path:
     """Return the local path to *filename*, downloading if necessary.
 
     Downloads from S3 (via boto3) or the CDN (via urllib) and verifies the
@@ -105,3 +105,13 @@ def ensure_data(filename: str = "grid_data.npz") -> Path:
         )
 
     return dest
+
+
+def download_all() -> None:
+    """Download all data files listed in the manifest.
+
+    This is called automatically as a post-install script by pip.
+    """
+    manifest = _load_manifest()
+    for filename in manifest["files"]:
+        ensure_data(filename)
