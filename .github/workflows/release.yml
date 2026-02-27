@@ -6,7 +6,52 @@ on:
       - "v*"
 
 jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - run: pip install ruff
+
+      - name: Check formatting
+        run: ruff format --check .
+
+      - name: Check linting rules
+        run: ruff check .
+
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install package with dev and examples extras
+        run: pip install -e ".[dev,examples]"
+
+      - name: Download cross-validation data
+        run: |
+          mkdir -p cross_validation_data
+          curl -sL https://gadopt.syd1.cdn.digitaloceanspaces.com/llnltofi/cross_validation_data.tar.gz -o cross_validation_data.tar.gz
+          echo "9c0515f175b43735efdd3f3ccaa06176b613ec3f0b0b98f463e18f1dd8871ce2  cross_validation_data.tar.gz" | sha256sum -c
+          tar xzf cross_validation_data.tar.gz -C cross_validation_data
+
+      - name: Run tests
+        run: pytest tests/ -v
+        env:
+          LLNL_TOFI_DATA: cross_validation_data
+
   build:
+    needs: [lint, test]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -33,7 +78,7 @@ jobs:
     runs-on: ubuntu-latest
     environment: testpypi
     permissions:
-      id-token: write  # required for OIDC trusted publishing
+      id-token: write
     steps:
       - name: Download build artifacts
         uses: actions/download-artifact@v4
@@ -51,7 +96,7 @@ jobs:
     runs-on: ubuntu-latest
     environment: pypi
     permissions:
-      id-token: write  # required for OIDC trusted publishing
+      id-token: write
     steps:
       - name: Download build artifacts
         uses: actions/download-artifact@v4
