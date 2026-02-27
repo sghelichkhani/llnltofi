@@ -45,21 +45,9 @@ from llnltofi.interpolation import project_onto_grid
 du = project_onto_grid(source_points, source_values, model)  # shape (1_003_608,)
 ```
 
-## Setting up the resolution matrix
-
-The resolution matrix is distributed by LLNL as 44 text files in COO format. These can be obtained from the [LLNL server](https://gs.llnl.gov/nuclear-threat-reduction/nuclear-explosion-monitoring/global-3d-seismic-tomography) or by email request to simmons27@llnl.gov. Once you have the text files, convert them to a bundled npz that the package will pick up automatically:
-
-```python
-from llnltofi import convert_text_to_npz
-
-convert_text_to_npz("./path/to/text/files/")
-```
-
-This writes `R.npz` into the package's `data/` directory. After that, `load_resolution_matrix()` works without any path argument.
-
 ## Data
 
-The package bundles the LLNL-G3D-JPS tessellated grid coordinates, layer depth information, and (after conversion) the resolution matrix as a sparse npz file.
+All required data files, including the grid coordinates and the resolution matrix, are hosted on S3 and downloaded automatically on first use. There is nothing to configure — just `pip install` the package and everything is fetched lazily when you first access `model.R` or the coordinate properties. Downloaded files are cached locally so subsequent runs are instant.
 
 ## References
 
