@@ -18,8 +18,17 @@ jobs:
       - name: Install package with dev and examples extras
         run: pip install -e ".[dev,examples]"
 
+      - name: Download cross-validation data
+        run: |
+          mkdir -p cross_validation_data
+          curl -sL https://gadopt.syd1.cdn.digitaloceanspaces.com/llnltofi/cross_validation_data.tar.gz -o cross_validation_data.tar.gz
+          echo "9c0515f175b43735efdd3f3ccaa06176b613ec3f0b0b98f463e18f1dd8871ce2  cross_validation_data.tar.gz" | sha256sum -c
+          tar xzf cross_validation_data.tar.gz -C cross_validation_data
+
       - name: Run tests
         run: pytest tests/ -v
+        env:
+          LLNL_TOFI_DATA: cross_validation_data
 
       - name: Run example
         run: python examples/filter_synthetic_anomaly.py
