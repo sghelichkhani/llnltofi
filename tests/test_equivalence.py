@@ -163,18 +163,14 @@ def test_R_matrix_equivalence(R_bundled, R_from_text):
 
 def test_coordinates_match():
     """Grid coordinates in grid_data.npz must match the original text file."""
-    original = np.loadtxt(
-        DATA_DIR / "LLNL_G3D_JPS.Tessellated.Coordinates.txt"
-    )
+    original = np.loadtxt(DATA_DIR / "LLNL_G3D_JPS.Tessellated.Coordinates.txt")
     modern = np.load(ensure_data("grid_data.npz"))["coordinates"]
     np.testing.assert_array_almost_equal(modern, original)
 
 
 def test_layer_depths_match():
     """Layer depths in grid_data.npz must match the original text file."""
-    original = np.loadtxt(
-        DATA_DIR / "LLNL_G3D_JPS.Layer_Depths_min_avg_max.txt"
-    )
+    original = np.loadtxt(DATA_DIR / "LLNL_G3D_JPS.Layer_Depths_min_avg_max.txt")
     modern = np.load(ensure_data("grid_data.npz"))["layer_depths"]
     np.testing.assert_array_almost_equal(modern, original)
 
@@ -276,9 +272,7 @@ def test_calculate_coord_index_boundary(cj, expected_flat):
         flat_original = l_index * _NP_UM_TZ + (c_index % _NP_UM_TZ)
     else:
         flat_original = (
-            _NL_UM_TZ * _NP_UM_TZ
-            + (l_index - _NL_UM_TZ) * _NP_LM
-            + (c_index % _NP_LM)
+            _NL_UM_TZ * _NP_UM_TZ + (l_index - _NL_UM_TZ) * _NP_LM + (c_index % _NP_LM)
         )
 
     if flat_original != expected_flat:
@@ -304,6 +298,4 @@ def test_original_vs_modern_discrepancy_count(layer_R_data):
         total_entries += len(col_j)
         total_affected += np.isin(col_j, list(boundary_cj)).sum()
 
-    print(
-        f"\nR entries at boundary columns: {total_affected} / {total_entries}"
-    )
+    print(f"\nR entries at boundary columns: {total_affected} / {total_entries}")
