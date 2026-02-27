@@ -14,14 +14,14 @@ from ._constants import (
     GRID_SPACING_UM_TZ_KM,
     GRID_SPACING_LM_KM,
 )
-from ._grid import Grid
+from ._grid import ResolutionModel
 from ._spherical import geo2sph, sph2cart
 
 
 def project_onto_grid(
     source_points: np.ndarray,
     source_values: np.ndarray,
-    grid: Grid,
+    model: ResolutionModel,
     *,
     k: int = 1000,
     weighting: str = "inverse_distance",
@@ -34,8 +34,8 @@ def project_onto_grid(
         Source locations as ``(gc_lat_deg, lon_deg, radius_km)``.
     source_values : ndarray, shape (N,)
         Field values at the source locations.
-    grid : Grid
-        An ``llnltofi.Grid`` instance.
+    model : ResolutionModel
+        An ``llnltofi.ResolutionModel`` instance.
     k : int
         Number of nearest neighbours queried per target point.
     weighting : str
@@ -67,11 +67,11 @@ def project_onto_grid(
 
     result = np.empty(N_MODEL, dtype="float64")
 
-    for layer in range(grid.n_layers):
+    for layer in range(model.n_layers):
         n = N_POINTS_UM_TZ if layer < N_LAYERS_UM_TZ else N_POINTS_LM
-        off = grid._layer_offset(layer)
-        radii = grid.layer_radius(layer)
-        depth_avg = grid._depth_avg[layer]
+        off = model._layer_offset(layer)
+        radii = model.layer_radius(layer)
+        depth_avg = model._depth_avg[layer]
         radius_avg = R_EARTH_KM - depth_avg
 
         grid_spacing = (
@@ -101,8 +101,8 @@ def project_onto_grid(
         subset_cart = src_cart[mask]
         subset_vals = source_values[mask]
 
-        gc_lat = grid._geocentric_latitude[:n]
-        lon = grid._longitude[:n]
+        gc_lat = model._geocentric_latitude[:n]
+        lon = model._longitude[:n]
 
         # Target Cartesian coordinates (normalised by R_EARTH_KM)
         target_cart = sph2cart(

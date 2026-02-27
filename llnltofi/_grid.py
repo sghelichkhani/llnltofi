@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import numpy as np
+import scipy.sparse
 
 from ._constants import (
     R_EARTH_KM,
@@ -14,12 +15,12 @@ from ._download import ensure_data
 from ._spherical import geo2sph, sph2cart
 
 
-class Grid:
-    """LLNL-G3D-JPS tessellated grid.
+class ResolutionModel:
+    """LLNL-G3D-JPS resolution model.
 
     Loads the bundled coordinate and depth files on construction and provides
-    flat coordinate arrays and a resolution-matrix filter for the full model
-    vector.
+    flat coordinate arrays, a lazy-loaded resolution matrix ``R``, and a
+    stateful ``apply()`` method for filtering model vectors.
 
     Layers are 0-based: 0 = crust, 43 = D''/CMB.
     """
@@ -39,6 +40,7 @@ class Grid:
         self._coordinates_in_lonlatdepth = None
         self._coordinates_in_xyz = None
         self._R = None
+        self._values = None
 
     # -- scalar properties ---------------------------------------------------
 
@@ -49,6 +51,39 @@ class Grid:
     @property
     def n_model(self) -> int:
         return N_MODEL
+
+    # -- model values --------------------------------------------------------
+
+    @property
+    def values(self) -> np.ndarray | None:
+        """Model values vector, or ``None`` if not yet assigned."""
+        return self._values
+
+    @values.setter
+    def values(self, v: np.ndarray) -> None:
+        v = np.asarray(v, dtype="float64")
+        if v.shape != (N_MODEL,):
+            raise ValueError(f"Expected shape ({N_MODEL},), got {v.shape}")
+        self._values = v
+
+    # -- resolution matrix ---------------------------------------------------
+
+    @property
+    def R(self) -> scipy.sparse.csr_matrix:
+        """Resolution matrix, lazy-loaded on first access."""
+        if self._R is None:
+            from ._resolution_matrix import load_resolution_matrix
+
+            self._R = load_resolution_matrix()
+        return self._R
+
+    @R.setter
+    def R(self, matrix: scipy.sparse.spmatrix) -> None:
+        if matrix.shape != (N_MODEL, N_MODEL):
+            raise ValueError(
+                f"Expected shape ({N_MODEL}, {N_MODEL}), got {matrix.shape}"
+            )
+        self._R = matrix
 
     # -- per-layer queries ---------------------------------------------------
 
@@ -82,9 +117,9 @@ class Grid:
             for layer in range(N_LAYERS):
                 n = N_POINTS_UM_TZ if layer < N_LAYERS_UM_TZ else N_POINTS_LM
                 off = self._layer_offset(layer)
-                out[off : off + n, 0] = self._longitude[:n]
-                out[off : off + n, 1] = self._geocentric_latitude[:n]
-                out[off : off + n, 2] = self._depth_avg[layer]
+                out[off: off + n, 0] = self._longitude[:n]
+                out[off: off + n, 1] = self._geocentric_latitude[:n]
+                out[off: off + n, 2] = self._depth_avg[layer]
             self._coordinates_in_lonlatdepth = out
         return self._coordinates_in_lonlatdepth
 
@@ -105,32 +140,28 @@ class Grid:
                     )
                 )
                 cart = sph2cart(geo2sph(geo))
-                out[off : off + n] = cart * 1000.0
+                out[off: off + n] = cart * 1000.0
             self._coordinates_in_xyz = out
         return self._coordinates_in_xyz
 
-    # -- resolution-matrix filter --------------------------------------------
+    # -- apply ---------------------------------------------------------------
 
-    def filter_slowness_perturbation(self, du: np.ndarray) -> np.ndarray:
-        """Apply the resolution matrix to a slowness-perturbation vector.
-
-        Parameters
-        ----------
-        du : ndarray, shape (n_model,)
-            Slowness perturbation at each grid point.
+    def apply(self) -> np.ndarray:
+        """Apply the resolution matrix to the stored model values.
 
         Returns
         -------
         ndarray, shape (n_model,)
-            Filtered slowness perturbation ``R @ du``.
-        """
-        if du.shape != (N_MODEL,):
-            raise ValueError(f"Expected shape ({N_MODEL},), got {du.shape}")
-        if self._R is None:
-            from ._resolution_matrix import load_resolution_matrix
+            Filtered model vector ``R @ values``.
 
-            self._R = load_resolution_matrix()
-        return self._R @ du
+        Raises
+        ------
+        RuntimeError
+            If ``values`` has not been assigned yet.
+        """
+        if self._values is None:
+            raise RuntimeError("No values assigned. Set model.values first.")
+        return self.R @ self._values
 
     # -- internal ------------------------------------------------------------
 

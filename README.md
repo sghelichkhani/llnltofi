@@ -21,20 +21,20 @@ pip install -e ".[examples]"
 ```python
 import llnltofi
 
-grid = llnltofi.Grid()
+model = llnltofi.ResolutionModel()
 
 # Get grid coordinates as (lon, gc_lat, depth_km)
-coords = grid.coordinates_in_lonlatdepth  # shape (1_003_608, 3)
+coords = model.coordinates_in_lonlatdepth  # shape (1_003_608, 3)
 
 # Or as Cartesian (x, y, z) in metres
-xyz = grid.coordinates_in_xyz  # shape (1_003_608, 3)
+xyz = model.coordinates_in_xyz  # shape (1_003_608, 3)
 
 # Evaluate your model at these points and compute slowness perturbation
 # du = 1/v_3D - 1/v_1D at each grid point
-du = ...  # shape (1_003_608,)
+model.values = ...  # shape (1_003_608,)
 
 # Apply the resolution matrix
-du_filtered = grid.filter_slowness_perturbation(du)  # shape (1_003_608,)
+du_filtered = model.apply()  # shape (1_003_608,)
 ```
 
 An interpolation helper is also provided for projecting an arbitrary point cloud onto the LLNL grid:
@@ -42,7 +42,7 @@ An interpolation helper is also provided for projecting an arbitrary point cloud
 ```python
 from llnltofi.interpolation import project_onto_grid
 
-du = project_onto_grid(source_points, source_values, grid)  # shape (1_003_608,)
+du = project_onto_grid(source_points, source_values, model)  # shape (1_003_608,)
 ```
 
 ## Setting up the resolution matrix
