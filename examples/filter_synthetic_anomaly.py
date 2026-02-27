@@ -15,10 +15,10 @@ import matplotlib.pyplot as plt
 
 import llnltofi
 
-# ── 1. Set up the grid ──────────────────────────────────────────────────────
-grid = llnltofi.Grid()
-coords = grid.coordinates_in_lonlatdepth  # (n_model, 3): lon, gc_lat, depth_km
-print(f"Grid points: {grid.n_model:,}")
+# ── 1. Set up the model ───────────────────────────────────────────────────
+model = llnltofi.ResolutionModel()
+coords = model.coordinates_in_lonlatdepth  # (n_model, 3): lon, gc_lat, depth_km
+print(f"Grid points: {model.n_model:,}")
 
 # ── 2. Build a synthetic slowness perturbation ──────────────────────────────
 # Place a Gaussian blob at (lon=120°, lat=-25°, depth=600 km) — roughly
@@ -36,7 +36,8 @@ du = 0.01 * np.exp(
 print(f"Peak input du: {du.max():.4e} s/km")
 
 # ── 3. Apply the resolution matrix ─────────────────────────────────────────
-du_filtered = grid.filter_slowness_perturbation(du)
+model.values = du
+du_filtered = model.apply()
 print(f"Peak filtered du: {du_filtered.max():.4e} s/km")
 
 # ── 4. Quick comparison ────────────────────────────────────────────────────
