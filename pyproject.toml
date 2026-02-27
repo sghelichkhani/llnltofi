@@ -1,17 +1,42 @@
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling", "hatch-vcs"]
 build-backend = "hatchling.build"
 
 [project]
 name = "llnltofi"
-version = "0.1.0"
+dynamic = ["version"]
 description = "Apply the LLNL-G3D-JPS resolution matrix to velocity models."
-requires-python = ">=3.10"
+readme = "README.md"
+requires-python = ">=3.12"
 license = "GPL-3.0-or-later"
+authors = [
+    { name = "Sia Ghelichkhan", email = "sia.ghelichkhani@anu.edu.au" },
+]
+keywords = [
+    "seismology",
+    "tomography",
+    "mantle",
+    "resolution",
+    "geophysics",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering :: Physics",
+    "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+]
 dependencies = [
     "numpy>=1.24",
     "scipy>=1.10",
 ]
+
+[project.urls]
+Homepage = "https://github.com/sghelichkhani/llnltofi"
+Repository = "https://github.com/sghelichkhani/llnltofi"
+Issues = "https://github.com/sghelichkhani/llnltofi/issues"
 
 [project.optional-dependencies]
 dev = ["pytest"]
@@ -19,6 +44,12 @@ examples = ["matplotlib", "seaborn", "pandas", "xarray", "netCDF4"]
 
 [project.scripts]
 llnltofi-download = "llnltofi._download:download_all"
+
+[tool.hatch.version]
+source = "vcs"
+
+[tool.hatch.build.hooks.vcs]
+version-file = "llnltofi/_version.py"
 
 [tool.hatch.build.targets.wheel]
 packages = ["llnltofi"]

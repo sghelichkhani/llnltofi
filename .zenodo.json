@@ -1,0 +1,32 @@
+{
+  "title": "llnltofi: Tomographic filtering using the LLNL-G3D-JPS resolution matrix",
+  "description": "A Python package for tomographic filtering of seismic mantle structure (vS or vP) using the resolution matrix R of the LLNL-G3D-JPS model. Given a velocity model on the LLNL grid, llnltofi applies the resolution operator via a single sparse matrix-vector multiply R*m = m' and returns the filtered result.",
+  "license": "GPL-3.0-or-later",
+  "upload_type": "software",
+  "creators": [
+    {
+      "name": "Ghelichkhan, Sia",
+      "affiliation": "Australian National University",
+      "orcid": "0000-0002-1316-3170"
+    }
+  ],
+  "keywords": [
+    "seismology",
+    "tomography",
+    "mantle",
+    "resolution",
+    "geophysics"
+  ],
+  "related_identifiers": [
+    {
+      "scheme": "doi",
+      "identifier": "10.1002/2015GL066237",
+      "relation": "cites"
+    },
+    {
+      "scheme": "doi",
+      "identifier": "10.1093/gji/ggz102",
+      "relation": "cites"
+    }
+  ]
+}

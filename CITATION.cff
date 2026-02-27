@@ -1,0 +1,63 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+type: software
+title: "llnltofi: Tomographic filtering using the LLNL-G3D-JPS resolution matrix"
+authors:
+  - family-names: Ghelichkhan
+    given-names: Sia
+    email: sia.ghelichkhani@anu.edu.au
+    orcid: https://orcid.org/0000-0002-1316-3170
+repository-code: "https://github.com/sghelichkhani/llnltofi"
+license: GPL-3.0-or-later
+abstract: >
+  A Python package for tomographic filtering of seismic mantle structure
+  (vS or vP) using the resolution matrix R of the LLNL-G3D-JPS model.
+  Given a velocity model on the LLNL grid, llnltofi applies the resolution
+  operator via a single sparse matrix-vector multiply R*m = m' and returns
+  the filtered result.
+keywords:
+  - seismology
+  - tomography
+  - mantle
+  - resolution
+  - geophysics
+references:
+  - type: article
+    title: >
+      Evidence for long-lived subduction of an ancient tectonic plate
+      beneath the southern Indian Ocean
+    authors:
+      - family-names: Simmons
+        given-names: Nathan A.
+      - family-names: Myers
+        given-names: Steven C.
+      - family-names: Johannesson
+        given-names: Gardar
+      - family-names: Matzel
+        given-names: Eric
+      - family-names: Grand
+        given-names: Stephen P.
+    journal: "Geophysical Research Letters"
+    volume: 42
+    issue: 21
+    year: 2015
+    doi: 10.1002/2015GL066237
+  - type: article
+    title: >
+      Resolution and covariance of the LLNL-G3D-JPS global seismic
+      tomography model: applications to travel time uncertainty and
+      tomographic filtering of geodynamic models
+    authors:
+      - family-names: Simmons
+        given-names: Nathan A.
+      - family-names: Schuberth
+        given-names: Bernhard S. A.
+      - family-names: Myers
+        given-names: Steven C.
+      - family-names: Knapp
+        given-names: Darin R.
+    journal: "Geophysical Journal International"
+    volume: 217
+    issue: 3
+    year: 2019
+    doi: 10.1093/gji/ggz102
