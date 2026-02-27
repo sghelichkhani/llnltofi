@@ -117,9 +117,9 @@ class ResolutionModel:
             for layer in range(N_LAYERS):
                 n = N_POINTS_UM_TZ if layer < N_LAYERS_UM_TZ else N_POINTS_LM
                 off = self._layer_offset(layer)
-                out[off: off + n, 0] = self._longitude[:n]
-                out[off: off + n, 1] = self._geocentric_latitude[:n]
-                out[off: off + n, 2] = self._depth_avg[layer]
+                out[off : off + n, 0] = self._longitude[:n]
+                out[off : off + n, 1] = self._geocentric_latitude[:n]
+                out[off : off + n, 2] = self._depth_avg[layer]
             self._coordinates_in_lonlatdepth = out
         return self._coordinates_in_lonlatdepth
 
@@ -140,7 +140,7 @@ class ResolutionModel:
                     )
                 )
                 cart = sph2cart(geo2sph(geo))
-                out[off: off + n] = cart * 1000.0
+                out[off : off + n] = cart * 1000.0
             self._coordinates_in_xyz = out
         return self._coordinates_in_xyz
 
