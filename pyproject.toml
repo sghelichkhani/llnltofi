@@ -34,13 +34,13 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/sghelichkhani/llnltofi"
-Repository = "https://github.com/sghelichkhani/llnltofi"
-Issues = "https://github.com/sghelichkhani/llnltofi/issues"
+Homepage = "https://github.com/g-adopt/llnltofi"
+Repository = "https://github.com/g-adopt/llnltofi"
+Issues = "https://github.com/g-adopt/llnltofi/issues"
 
 [project.optional-dependencies]
 dev = ["pytest"]
-examples = ["matplotlib", "seaborn", "pandas", "xarray", "netCDF4"]
+examples = ["matplotlib"]
 
 [project.scripts]
 llnltofi-download = "llnltofi._download:download_all"

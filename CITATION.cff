@@ -7,7 +7,7 @@ authors:
     given-names: Sia
     email: sia.ghelichkhani@anu.edu.au
     orcid: https://orcid.org/0000-0002-1316-3170
-repository-code: "https://github.com/sghelichkhani/llnltofi"
+repository-code: "https://github.com/g-adopt/llnltofi"
 license: GPL-3.0-or-later
 abstract: >
   A Python package for tomographic filtering of seismic mantle structure

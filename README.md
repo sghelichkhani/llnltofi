@@ -10,7 +10,7 @@ Author: Sia Ghelichkhan (sia.ghelichkhani@anu.edu.au)
 pip install -e .
 ```
 
-Dependencies are just `numpy` and `scipy`. For running the example scripts you will also need `matplotlib`, `seaborn`, `pandas`, `xarray`, and `netCDF4`, which can be installed with:
+Dependencies are just `numpy` and `scipy`. For running the example scripts you will also need `matplotlib`, which can be installed with:
 
 ```bash
 pip install -e ".[examples]"
